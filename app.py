@@ -1,13 +1,13 @@
 """FastAPI entry point for the O&M Dashboard."""
-import base64
 import os
 from datetime import date, datetime
 from pathlib import Path
 
 from fastapi import FastAPI, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 
 import db
@@ -17,27 +17,24 @@ BASE_DIR = Path(__file__).resolve().parent
 
 app = FastAPI(title="Forest Energy O&M Dashboard")
 
-_OM_PASSWORD = os.environ.get("OM_PASSWORD")
+SESSION_SECRET = os.environ.get("SESSION_SECRET", "change-me-in-production")
+OM_USERNAME = os.environ.get("OM_USERNAME", "Forest")
+OM_PASSWORD = os.environ.get("OM_PASSWORD", "")
 
-class _BasicAuth(BaseHTTPMiddleware):
+app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET)
+
+_PUBLIC_PATHS = {"/login", "/static"}
+
+class _AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        if not _OM_PASSWORD:
+        path = request.url.path
+        if path.startswith("/static") or path == "/login":
             return await call_next(request)
-        auth = request.headers.get("Authorization", "")
-        if auth.startswith("Basic "):
-            try:
-                _, pwd = base64.b64decode(auth[6:]).decode().split(":", 1)
-                if pwd == _OM_PASSWORD:
-                    return await call_next(request)
-            except Exception:
-                pass
-        return Response(
-            "Unauthorised",
-            status_code=401,
-            headers={"WWW-Authenticate": 'Basic realm="Forest Energy O&M"'},
-        )
+        if not request.session.get("logged_in"):
+            return RedirectResponse("/login", status_code=303)
+        return await call_next(request)
 
-app.add_middleware(_BasicAuth)
+app.add_middleware(_AuthMiddleware)
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
@@ -94,6 +91,33 @@ templates.env.filters["month_label"] = _month_label
 @app.on_event("startup")
 def _startup():
     db.init_db()
+
+
+# ---- Auth routes -----------------------------------------------------------
+
+@app.get("/login", response_class=HTMLResponse)
+def login_get(request: Request):
+    if request.session.get("logged_in"):
+        return RedirectResponse("/", status_code=303)
+    return templates.TemplateResponse("login.html", {"request": request, "error": None})
+
+
+@app.post("/login")
+async def login_post(request: Request, username: str = Form(...), password: str = Form(...)):
+    if username == OM_USERNAME and password == OM_PASSWORD:
+        request.session["logged_in"] = True
+        return RedirectResponse("/", status_code=303)
+    return templates.TemplateResponse(
+        "login.html",
+        {"request": request, "error": "Incorrect username or password."},
+        status_code=401,
+    )
+
+
+@app.post("/logout")
+def logout(request: Request):
+    request.session.clear()
+    return RedirectResponse("/login", status_code=303)
 
 
 # ---- Routes ----------------------------------------------------------------

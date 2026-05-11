@@ -86,6 +86,19 @@ a:hover { text-decoration: underline; }
     color: var(--forest-teal);
 }
 .nav-cta:hover { background: #F0F5F5; color: var(--forest-teal); }
+.nav-signout {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.35);
+    color: rgba(255,255,255,0.85);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    margin-left: 8px;
+}
+.nav-signout:hover { background: rgba(255,255,255,0.1); color: #fff; }
 
 /* ---- Layout ---------------------------------------------------------- */
 .container {

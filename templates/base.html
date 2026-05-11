@@ -32,6 +32,9 @@
             <a href="/residential" class="nav-link {% if active == 'residential' %}active{% endif %}">Residential</a>
             <a href="/contracts" class="nav-link {% if active == 'contracts' %}active{% endif %}">Contracts</a>
             <a href="/contracts/new" class="nav-link nav-cta">+ New Contract</a>
+            <form method="post" action="/logout" style="display:inline;">
+                <button type="submit" class="nav-link nav-signout">Sign Out</button>
+            </form>
         </nav>
     </div>
 </header>

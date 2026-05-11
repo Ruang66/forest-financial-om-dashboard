@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forest Energy O&M Financial - Sign In</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; background: #0d2830; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+.card { background: #fff; border-radius: 10px; padding: 40px; width: 380px; max-width: 94vw; box-shadow: 0 12px 40px rgba(0,0,0,0.35); border-top: 5px solid #114d5d; }
+.brand-row { display: flex; flex-direction: column; margin-bottom: 28px; }
+.brand-name { font-weight: 700; font-size: 16px; color: #114d5d; }
+.brand-sub { font-size: 11px; color: #8ca6ae; text-transform: uppercase; letter-spacing: 0.4px; margin-top: 2px; }
+h2 { margin: 0 0 20px; color: #114d5d; font-size: 18px; font-weight: 700; }
+label { display: block; font-size: 11px; font-weight: 700; color: #46717e; margin: 12px 0 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+input { width: 100%; padding: 10px 12px; border: 1px solid #dde4e6; border-radius: 6px; font-size: 14px; font-family: inherit; color: #0d2830; }
+input:focus { outline: none; border-color: #114d5d; box-shadow: 0 0 0 2px rgba(17,77,93,0.15); }
+button { width: 100%; margin-top: 20px; padding: 12px; background: #114d5d; color: #fff; border: none; border-radius: 6px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; }
+button:hover { background: #46717e; }
+.error { margin-top: 12px; padding: 10px 12px; background: #fdeaea; color: #a01818; border-radius: 6px; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="brand-row">
+    <span class="brand-name">FOREST ENERGY</span>
+    <span class="brand-sub">O&M Financial Dashboard</span>
+  </div>
+  <h2>Sign in</h2>
+  <form method="post" action="/login">
+    <label for="username">Username</label>
+    <input type="text" id="username" name="username" placeholder="Username" autocomplete="username" required>
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" placeholder="Password" autocomplete="current-password" required>
+    <button type="submit">Sign in</button>
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+  </form>
+</div>
+</body>
+</html>
