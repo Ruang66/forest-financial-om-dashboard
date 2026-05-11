@@ -21,8 +21,6 @@ SESSION_SECRET = os.environ.get("SESSION_SECRET", "change-me-in-production")
 OM_USERNAME = os.environ.get("OM_USERNAME", "Forest")
 OM_PASSWORD = os.environ.get("OM_PASSWORD", "")
 
-app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET)
-
 _PUBLIC_PATHS = {"/login", "/static"}
 
 class _AuthMiddleware(BaseHTTPMiddleware):
@@ -34,7 +32,9 @@ class _AuthMiddleware(BaseHTTPMiddleware):
             return RedirectResponse("/login", status_code=303)
         return await call_next(request)
 
+# Order matters: _AuthMiddleware first so SessionMiddleware wraps it (runs first)
 app.add_middleware(_AuthMiddleware)
+app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET)
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
