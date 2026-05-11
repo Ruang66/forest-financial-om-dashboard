@@ -4,9 +4,6 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 
-# SQLite database path
-DB_PATH = os.environ.get("OM_DB_PATH", str(BASE_DIR / "om_dashboard.db"))
-
 # Source Excel file used by the initial migration
 EXCEL_SOURCE = os.environ.get(
     "OM_EXCEL_SOURCE",

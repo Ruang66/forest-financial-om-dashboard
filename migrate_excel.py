@@ -168,8 +168,8 @@ def run(excel_path: str) -> dict:
 
     # Wipe existing rows so re-runs are idempotent.
     with conn() as c:
-        c.execute("DELETE FROM contracts")
-        c.execute("DELETE FROM sqlite_sequence WHERE name='contracts'")
+        cur = c.cursor()
+        cur.execute("DELETE FROM contracts")
 
     imported = {"commercial": 0, "residential": 0, "incomplete": 0, "internal": 0}
 

@@ -165,10 +165,10 @@ def contracts_list(request: Request, status: str | None = None, source: str | No
     sql = "SELECT * FROM contracts WHERE 1=1"
     params: list = []
     if status:
-        sql += " AND status = ?"
+        sql += " AND status = %s"
         params.append(status)
     if source:
-        sql += " AND sheet_source = ?"
+        sql += " AND sheet_source = %s"
         params.append(source)
     sql += " ORDER BY sheet_source, client_name"
     rows = [dict(r) for r in db.fetchall(sql, params)]
@@ -244,7 +244,7 @@ def contracts_new_post(
 
 @app.get("/contracts/{contract_id}", response_class=HTMLResponse)
 def contract_detail(request: Request, contract_id: int):
-    row = db.fetchone("SELECT * FROM contracts WHERE id = ?", (contract_id,))
+    row = db.fetchone("SELECT * FROM contracts WHERE id = %s", (contract_id,))
     if not row:
         raise HTTPException(404, "Contract not found")
     contract = dict(row)
