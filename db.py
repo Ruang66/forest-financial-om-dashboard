@@ -7,7 +7,18 @@ from typing import Any, Iterable
 import psycopg2
 import psycopg2.extras
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+def _get_dsn() -> str:
+    url = os.environ.get("DATABASE_URL")
+    if url:
+        return url
+    host = os.environ.get("PGHOST", "localhost")
+    port = os.environ.get("PGPORT", "5432")
+    database = os.environ.get("PGDATABASE", "railway")
+    user = os.environ.get("PGUSER", "postgres")
+    password = os.environ.get("PGPASSWORD", "")
+    return f"postgresql://{user}:{password}@{host}:{port}/{database}"
+
+DATABASE_URL = _get_dsn()
 
 _SCHEMA = [
     """CREATE TABLE IF NOT EXISTS contracts (
