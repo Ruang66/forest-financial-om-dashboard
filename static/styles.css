@@ -1,0 +1,377 @@
+/* Forest Energy O&M Dashboard - visual style matches the Sales KPI reference */
+
+:root {
+    /* Forest Energy brand palette */
+    --forest-teal: #114d5d;       /* Forest Blue - primary */
+    --forest-teal-dark: #0d2830;  /* Forest Dark Background */
+    --forest-teal-light: #46717e; /* Forest Light Blue - secondary */
+    --forest-grey-blue: #8ca6ae;  /* Forest Grey Blue */
+    --forest-grey: #dde4e6;       /* Forest Grey - light backgrounds */
+
+    --green: #2B8A3E;
+    --green-soft: #2F9E44;
+    --red: #C92A2A;
+    --red-soft: #E03131;
+    --orange: #E8590C;
+    --orange-soft: #F76707;
+
+    --bg: #F4F6F7;
+    --panel: #FFFFFF;
+    --border: #E2E6EA;
+    --text: #1A1F22;
+    --text-muted: #667078;
+    --text-soft: #8B949C;
+
+    --radius: 8px;
+    --shadow: 0 1px 2px rgba(17, 77, 93, 0.04), 0 1px 3px rgba(17, 77, 93, 0.06);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    /* Forest Energy brand: Roboto for document/internal outputs, Arial fallback */
+    font-family: "Roboto", Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+a { color: var(--forest-teal); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ---- Header ----------------------------------------------------------- */
+.app-header {
+    background: var(--forest-teal);
+    color: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+.header-inner {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 16px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.brand {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+}
+.brand-name {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+.brand-sub {
+    font-size: 12px;
+    opacity: 0.85;
+    font-weight: 500;
+}
+.nav { display: flex; gap: 8px; align-items: center; }
+.nav-link {
+    color: rgba(255, 255, 255, 0.85);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 13px;
+}
+.nav-link:hover { background: rgba(255, 255, 255, 0.08); text-decoration: none; color: #fff; }
+.nav-link.active { background: rgba(255, 255, 255, 0.14); color: #fff; }
+.nav-cta {
+    background: #fff;
+    color: var(--forest-teal);
+}
+.nav-cta:hover { background: #F0F5F5; color: var(--forest-teal); }
+
+/* ---- Layout ---------------------------------------------------------- */
+.container {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 24px 28px 48px;
+}
+.section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin: 8px 0 20px;
+    gap: 16px;
+}
+.section-header h2 {
+    margin: 0 0 4px;
+    font-size: 15px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 700;
+}
+.muted { color: var(--text-muted); font-size: 12px; }
+
+/* ---- KPI cards (reference style: white card, colored left border) ----- */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.kpi-grid-inner { margin-bottom: 0; }
+
+.kpi-card {
+    background: var(--panel);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--forest-teal);
+    position: relative;
+}
+.kpi-border-teal { border-left-color: var(--forest-teal); }
+.kpi-border-green { border-left-color: var(--green-soft); }
+.kpi-border-red   { border-left-color: var(--red-soft); }
+.kpi-border-orange{ border-left-color: var(--orange-soft); }
+
+.kpi-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+.kpi-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.15;
+}
+.kpi-value-sm {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+}
+.kpi-sub {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.kpi-card-mini {
+    background: #F8FAFB;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+}
+.kpi-card-mini .kpi-value {
+    font-size: 20px;
+}
+
+/* ---- Panels --------------------------------------------------------- */
+.panel {
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+    overflow: hidden;
+    border-top: 3px solid var(--forest-teal);
+}
+.panel-warning { border-top-color: var(--orange-soft); }
+.panel-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 16px 20px 10px;
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+}
+.panel-header h3 {
+    margin: 0;
+    font-size: 13px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+.panel-body { padding: 16px 20px; }
+.panel-body .kpi-grid { margin-bottom: 0; }
+
+/* ---- Tables --------------------------------------------------------- */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.table th, .table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+.table th {
+    font-size: 11px;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: #FAFBFC;
+    font-weight: 700;
+}
+.table tbody tr:hover { background: #F7FAFA; }
+.table td.num, .table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.num-strong { font-weight: 700; color: var(--text); }
+.table tfoot td { background: #F7FAFA; border-top: 2px solid var(--border); }
+
+.table-compact th, .table-compact td { padding: 6px 10px; font-size: 12px; }
+
+.row-red  { background: rgba(224, 49, 49, 0.06); }
+.row-red:hover { background: rgba(224, 49, 49, 0.10); }
+.row-orange { background: rgba(247, 103, 7, 0.05); }
+.row-orange:hover { background: rgba(247, 103, 7, 0.09); }
+
+.dot {
+    display: inline-block;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+.dot-red    { background: var(--red-soft); }
+.dot-orange { background: var(--orange-soft); }
+.dot-green  { background: var(--green-soft); }
+
+/* ---- Chips ---------------------------------------------------------- */
+.chip {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #EEF2F3;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    letter-spacing: 0.2px;
+}
+.chip-active { background: var(--forest-teal); color: #fff; border-color: var(--forest-teal); }
+.chip-commercial { background: #E9F2F3; color: var(--forest-teal-dark); border-color: #CFE0E2; }
+.chip-residential { background: #FFF4E6; color: #A14D00; border-color: #FFD8A8; }
+
+.status {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+.status-active { background: #E6F4EA; color: var(--green); }
+.status-incomplete { background: #FFE8CC; color: var(--orange); }
+.status-internal_no_invoice { background: #E9ECEF; color: #495057; }
+.status-ended { background: #F1F3F5; color: #495057; }
+
+/* ---- Filter bar ----------------------------------------------------- */
+.filter-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.filter-bar a.chip { cursor: pointer; }
+
+/* ---- Forms ---------------------------------------------------------- */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+.form-grid label {
+    display: flex;
+    flex-direction: column;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+    gap: 6px;
+}
+.form-grid label span { color: var(--text-muted); }
+.form-grid input, .form-grid select, .form-grid textarea {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text);
+    text-transform: none;
+    letter-spacing: normal;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #fff;
+    width: 100%;
+}
+.form-grid input:focus, .form-grid select:focus, .form-grid textarea:focus {
+    outline: none;
+    border-color: var(--forest-teal);
+    box-shadow: 0 0 0 3px rgba(17, 77, 93, 0.14);
+}
+.form-wide { grid-column: 1 / -1; }
+.form-actions {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn {
+    display: inline-block;
+    background: #fff;
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+}
+.btn:hover { background: #F5F7F8; text-decoration: none; }
+.btn-primary {
+    background: var(--forest-teal);
+    color: #fff;
+    border-color: var(--forest-teal);
+}
+.btn-primary:hover { background: var(--forest-teal-dark); color: #fff; }
+.btn-danger {
+    background: #fff;
+    color: var(--red);
+    border-color: #F2C7C7;
+}
+.btn-danger:hover { background: #FFF5F5; }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+
+.inline-form { display: inline; margin: 0; padding: 0; }
+.inline-form button { cursor: pointer; }
+
+tr.row-total td { background: #F3F7F8; }
+
+/* ---- Computed grid in contract detail ------------------------------- */
+.computed-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 20px;
+}
+
+.empty {
+    padding: 18px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+/* ---- Responsive ----------------------------------------------------- */
+@media (max-width: 1200px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .computed-grid { grid-template-columns: repeat(3, 1fr); }
+    .form-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 700px) {
+    .kpi-grid { grid-template-columns: 1fr; }
+    .computed-grid { grid-template-columns: repeat(2, 1fr); }
+    .form-grid { grid-template-columns: 1fr; }
+    .header-inner { flex-direction: column; gap: 12px; align-items: flex-start; }
+}

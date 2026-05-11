@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% set active = 'dashboard' %}
+{% block title %}Forest Energy O&M Dashboard{% endblock %}
+
+{% block content %}
+
+<section class="section-header">
+    <div>
+        <h2>Company Summary &mdash; {{ data.fy_label }}</h2>
+        <p class="muted">As at {{ data.today.strftime('%d %b %Y') }}. Financial year: {{ data.fy_start.strftime('%d %b %Y') }} to {{ data.fy_end.strftime('%d %b %Y') }}.</p>
+    </div>
+</section>
+
+<div class="kpi-grid">
+    <div class="kpi-card kpi-border-teal">
+        <div class="kpi-label">TOTAL SITES UNDER MANAGEMENT</div>
+        <div class="kpi-value">{{ data.kpis.total_sites }}</div>
+        <div class="kpi-sub">{{ data.kpis.commercial_sites }} commercial, {{ data.kpis.residential_sites }} residential</div>
+    </div>
+    <div class="kpi-card kpi-border-green">
+        <div class="kpi-label">TOTAL MONTHLY VALUE (EX VAT)</div>
+        <div class="kpi-value">{{ data.kpis.total_monthly_ex | zar }}</div>
+        <div class="kpi-sub">Comm {{ data.kpis.commercial_monthly_ex | zar }} &middot; Res {{ data.kpis.residential_monthly_ex | zar }}</div>
+    </div>
+    <div class="kpi-card kpi-border-teal">
+        <div class="kpi-label">TOTAL ANNUAL VALUE (EX VAT)</div>
+        <div class="kpi-value">{{ data.kpis.total_annual_ex | zar }}</div>
+        <div class="kpi-sub">Current monthly &times; 12</div>
+    </div>
+    <div class="kpi-card {% if data.kpis.incomplete_count > 0 %}kpi-border-red{% else %}kpi-border-teal{% endif %}">
+        <div class="kpi-label">INCOMPLETE CONTRACTS</div>
+        <div class="kpi-value">{{ data.kpis.incomplete_count }}</div>
+        <div class="kpi-sub">Needs review before billing</div>
+    </div>
+</div>
+
+<section class="panel">
+    <div class="panel-header">
+        <h3>Full FY Outlook &mdash; {{ data.fy_label }}</h3>
+    </div>
+    <div class="panel-body">
+        <div class="kpi-grid kpi-grid-inner">
+            <div class="kpi-card-mini">
+                <div class="kpi-label">COMMERCIAL MONTHLY (EX VAT)</div>
+                <div class="kpi-value">{{ data.kpis.commercial_monthly_ex | zar }}</div>
+            </div>
+            <div class="kpi-card-mini">
+                <div class="kpi-label">RESIDENTIAL MONTHLY (INC VAT)</div>
+                <div class="kpi-value">{{ data.kpis.residential_monthly_inc | zar }}</div>
+            </div>
+            <div class="kpi-card-mini">
+                <div class="kpi-label">FY FORECAST (EX VAT)</div>
+                <div class="kpi-value">{{ data.fy_forecast_ex_vat | zar }}</div>
+            </div>
+            <div class="kpi-card-mini">
+                <div class="kpi-label">INTERNAL SITES (NO INVOICE)</div>
+                <div class="kpi-value">{{ data.kpis.internal_count }}</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-header">
+        <h3>Action Required This Month</h3>
+        <span class="muted">Escalations and contract endings. Resolved manually only.</span>
+    </div>
+    <div class="panel-body">
+    {% if data.flags %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Flag</th>
+                    <th>Client</th>
+                    <th>Project</th>
+                    <th>Type</th>
+                    <th>Reason</th>
+                    <th class="num">Current Rent</th>
+                    <th class="num">Next Rent</th>
+                    <th>Next Escalation</th>
+                    <th>End Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in data.flags %}
+                <tr class="row-{{ f.flag_level }}">
+                    <td>
+                        <span class="dot dot-{{ f.flag_level }}"></span>
+                        {% if f.flag_level == 'red' %}Action now{% else %}1 mo warning{% endif %}
+                    </td>
+                    <td><a href="/contracts/{{ f.id }}">{{ f.client_name }}</a></td>
+                    <td>{{ f.project_number or '-' }}</td>
+                    <td>{{ f.sheet_source | capitalize }}</td>
+                    <td>{{ f.flag_reason }}</td>
+                    <td class="num">{{ f.computed.current_monthly_rent | zar }}</td>
+                    <td class="num">{{ f.computed.next_monthly_rent | zar }}</td>
+                    <td>{{ f.computed.next_escalation_date | fmt_date }}</td>
+                    <td>{{ f.computed.end_date | fmt_date }}</td>
+                    <td>
+                        <form method="post" action="/flags/resolve" class="inline-form">
+                            <input type="hidden" name="contract_id" value="{{ f.id }}">
+                            <input type="hidden" name="flag_type" value="{{ f.flag_type }}">
+                            <input type="hidden" name="flag_month" value="{{ f.flag_month }}">
+                            <input type="hidden" name="redirect" value="/">
+                            <button type="submit" class="btn btn-sm btn-primary">Mark actioned</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="empty">No contracts need action this month or next.</p>
+    {% endif %}
+    </div>
+</section>
+
+{% if data.resolved_flags %}
+<section class="panel">
+    <div class="panel-header">
+        <h3>Resolved This Month</h3>
+        <span class="muted">Flags you have marked as actioned. Click Undo to reopen.</span>
+    </div>
+    <div class="panel-body">
+        <table class="table table-compact">
+            <thead>
+                <tr>
+                    <th>Client</th>
+                    <th>Project</th>
+                    <th>Source</th>
+                    <th>Flag Type</th>
+                    <th>Flag Month</th>
+                    <th>Resolved At</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in data.resolved_flags %}
+                <tr>
+                    <td><a href="/contracts/{{ r.contract_id }}">{{ r.client_name }}</a></td>
+                    <td>{{ r.project_number or '-' }}</td>
+                    <td>{{ r.sheet_source | capitalize }}</td>
+                    <td>{{ r.flag_type | replace('_', ' ') | capitalize }}</td>
+                    <td>{{ r.flag_month }}</td>
+                    <td>{{ r.resolved_at }}</td>
+                    <td>
+                        <form method="post" action="/flags/unresolve" class="inline-form">
+                            <input type="hidden" name="contract_id" value="{{ r.contract_id }}">
+                            <input type="hidden" name="flag_type" value="{{ r.flag_type }}">
+                            <input type="hidden" name="flag_month" value="{{ r.flag_month }}">
+                            <input type="hidden" name="redirect" value="/">
+                            <button type="submit" class="btn btn-sm">Undo</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+{% if data.incomplete %}
+<section class="panel panel-warning">
+    <div class="panel-header">
+        <h3>Incomplete Contracts</h3>
+        <span class="muted">Excluded from billing totals. Fix these in the contract editor.</span>
+    </div>
+    <div class="panel-body">
+        <table class="table">
+            <thead>
+                <tr><th>Client</th><th>Project</th><th>Source</th><th>Issue</th><th></th></tr>
+            </thead>
+            <tbody>
+                {% for c in data.incomplete %}
+                <tr>
+                    <td>{{ c.client_name }}</td>
+                    <td>{{ c.project_number or '-' }}</td>
+                    <td>{{ c.sheet_source | capitalize }}</td>
+                    <td>{{ c.notes or '-' }}</td>
+                    <td><a href="/contracts/{{ c.id }}" class="btn btn-sm">Fix</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+{% endblock %}
+<html xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882"><head>
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:MediaServiceImageTags msdt:dt="string"></mso:MediaServiceImageTags>
+<mso:lcf76f155ced4ddcb4097134ff3c332f msdt:dt="string"></mso:lcf76f155ced4ddcb4097134ff3c332f>
+<mso:TaxCatchAll msdt:dt="string"></mso:TaxCatchAll>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>

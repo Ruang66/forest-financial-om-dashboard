@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% set active = data.source %}
+{% block title %}{{ data.title }} &mdash; Forest Energy{% endblock %}
+
+{% block content %}
+
+<section class="section-header">
+    <div>
+        <h2>{{ data.title }}</h2>
+        <p class="muted">{{ data.vat_note }}. As at {{ data.today.strftime('%d %b %Y') }}.</p>
+    </div>
+</section>
+
+<div class="kpi-grid">
+    <div class="kpi-card kpi-border-teal">
+        <div class="kpi-label">ACTIVE SITES</div>
+        <div class="kpi-value">{{ data.kpis.total_sites }}</div>
+    </div>
+    <div class="kpi-card kpi-border-green">
+        <div class="kpi-label">MONTHLY ({% if data.source == 'commercial' %}EX VAT{% else %}INC VAT{% endif %})</div>
+        <div class="kpi-value">{{ data.kpis.monthly_native | zar }}</div>
+    </div>
+    <div class="kpi-card kpi-border-teal">
+        <div class="kpi-label">MONTHLY (EX VAT EQUIV)</div>
+        <div class="kpi-value">{{ data.kpis.monthly_ex | zar }}</div>
+    </div>
+    <div class="kpi-card kpi-border-teal">
+        <div class="kpi-label">ANNUAL (EX VAT)</div>
+        <div class="kpi-value">{{ data.kpis.annual_ex | zar }}</div>
+        <div class="kpi-sub">Current monthly &times; 12</div>
+    </div>
+</div>
+
+<section class="panel">
+    <div class="panel-header">
+        <h3>Action Required This Month</h3>
+        <span class="muted">{{ data.title }} only. Resolved manually only.</span>
+    </div>
+    <div class="panel-body">
+    {% if data.flags %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Flag</th>
+                    <th>Client</th>
+                    <th>Project</th>
+                    <th>Reason</th>
+                    <th class="num">Current Rent</th>
+                    <th class="num">Next Rent</th>
+                    <th>Next Escalation</th>
+                    <th>End Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in data.flags %}
+                <tr class="row-{{ f.flag_level }}">
+                    <td>
+                        <span class="dot dot-{{ f.flag_level }}"></span>
+                        {% if f.flag_level == 'red' %}Action now{% else %}1 mo warning{% endif %}
+                    </td>
+                    <td><a href="/contracts/{{ f.id }}">{{ f.client_name }}</a></td>
+                    <td>{{ f.project_number or '-' }}</td>
+                    <td>{{ f.flag_reason }}</td>
+                    <td class="num">{{ f.computed.current_monthly_rent | zar }}</td>
+                    <td class="num">{{ f.computed.next_monthly_rent | zar }}</td>
+                    <td>{{ f.computed.next_escalation_date | fmt_date }}</td>
+                    <td>{{ f.computed.end_date | fmt_date }}</td>
+                    <td>
+                        <form method="post" action="/flags/resolve" class="inline-form">
+                            <input type="hidden" name="contract_id" value="{{ f.id }}">
+                            <input type="hidden" name="flag_type" value="{{ f.flag_type }}">
+                            <input type="hidden" name="flag_month" value="{{ f.flag_month }}">
+                            <input type="hidden" name="redirect" value="/{{ data.source }}">
+                            <button type="submit" class="btn btn-sm btn-primary">Mark actioned</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="empty">No {{ data.source }} contracts need action this month or next.</p>
+    {% endif %}
+    </div>
+</section>
+
+{% if data.resolved_flags %}
+<section class="panel">
+    <div class="panel-header">
+        <h3>Resolved This Month</h3>
+        <span class="muted">Click Undo to reopen.</span>
+    </div>
+    <div class="panel-body">
+        <table class="table table-compact">
+            <thead>
+                <tr>
+                    <th>Client</th>
+                    <th>Project</th>
+                    <th>Flag Type</th>
+                    <th>Flag Month</th>
+                    <th>Resolved At</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in data.resolved_flags %}
+                {% if r.sheet_source == data.source %}
+                <tr>
+                    <td><a href="/contracts/{{ r.contract_id }}">{{ r.client_name }}</a></td>
+                    <td>{{ r.project_number or '-' }}</td>
+                    <td>{{ r.flag_type | replace('_', ' ') | capitalize }}</td>
+                    <td>{{ r.flag_month }}</td>
+                    <td>{{ r.resolved_at }}</td>
+                    <td>
+                        <form method="post" action="/flags/unresolve" class="inline-form">
+                            <input type="hidden" name="contract_id" value="{{ r.contract_id }}">
+                            <input type="hidden" name="flag_type" value="{{ r.flag_type }}">
+                            <input type="hidden" name="flag_month" value="{{ r.flag_month }}">
+                            <input type="hidden" name="redirect" value="/{{ data.source }}">
+                            <button type="submit" class="btn btn-sm">Undo</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+<section class="panel">
+    <div class="panel-header">
+        <h3>Active Contracts</h3>
+        <span class="muted">{{ data.active | length }} sites currently billing</span>
+    </div>
+    <div class="panel-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Client</th>
+                    <th>Project</th>
+                    <th>Invoice</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th class="num">Current Rent</th>
+                    <th class="num">Escalation</th>
+                    <th>Next Escalation</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in data.active %}
+                <tr>
+                    <td><a href="/contracts/{{ c.id }}">{{ c.client_name }}</a></td>
+                    <td>{{ c.project_number or '-' }}</td>
+                    <td>{{ c.invoice_type or '-' }}</td>
+                    <td>{{ c.start_date | fmt_date }}</td>
+                    <td>{{ c.computed.end_date | fmt_date }}</td>
+                    <td class="num">{{ c.current_month_rent | zar }}</td>
+                    <td class="num">{{ c.escalation_pct | pct }}</td>
+                    <td>{{ c.computed.next_escalation_date | fmt_date }}</td>
+                    <td><a href="/contracts/{{ c.id }}" class="btn btn-sm">Edit</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% if data.incomplete %}
+<section class="panel panel-warning">
+    <div class="panel-header">
+        <h3>Incomplete {{ data.title }} Contracts</h3>
+        <span class="muted">Excluded from billing totals.</span>
+    </div>
+    <div class="panel-body">
+        <table class="table">
+            <thead>
+                <tr><th>Client</th><th>Project</th><th>Issue</th><th></th></tr>
+            </thead>
+            <tbody>
+                {% for c in data.incomplete %}
+                <tr>
+                    <td>{{ c.client_name }}</td>
+                    <td>{{ c.project_number or '-' }}</td>
+                    <td>{{ c.notes or '-' }}</td>
+                    <td><a href="/contracts/{{ c.id }}" class="btn btn-sm">Fix</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+{% if data.internal %}
+<section class="panel">
+    <div class="panel-header">
+        <h3>Internal Sites (No Invoice)</h3>
+        <span class="muted">Forest Energy owned. Excluded from billing totals.</span>
+    </div>
+    <div class="panel-body">
+        <table class="table">
+            <thead>
+                <tr><th>Client</th><th>Project</th></tr>
+            </thead>
+            <tbody>
+                {% for c in data.internal %}
+                <tr>
+                    <td>{{ c.client_name }}</td>
+                    <td>{{ c.project_number or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+{% endblock %}
+<html xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882"><head>
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:MediaServiceImageTags msdt:dt="string"></mso:MediaServiceImageTags>
+<mso:lcf76f155ced4ddcb4097134ff3c332f msdt:dt="string"></mso:lcf76f155ced4ddcb4097134ff3c332f>
+<mso:TaxCatchAll msdt:dt="string"></mso:TaxCatchAll>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>

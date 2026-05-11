@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% set active = 'forecast' %}
+{% block title %}Forward 12 Month Revenue &mdash; Forest Energy{% endblock %}
+
+{% block content %}
+
+<section class="section-header">
+    <div>
+        <h2>Forward 12 Month Revenue</h2>
+        <p class="muted">Ex VAT equivalent. Residential converted at 15% for comparability. As at {{ data.today.strftime('%d %b %Y') }}.</p>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-header">
+        <h3>Monthly Totals</h3>
+        <span class="muted">Roll-up across all active contracts</span>
+    </div>
+    <div class="panel-body">
+        <table class="table table-compact">
+            <thead>
+                <tr>
+                    <th>Segment</th>
+                    {% for m in data.months %}
+                    <th class="num">{{ m | month_label }}</th>
+                    {% endfor %}
+                    <th class="num">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Commercial (Ex VAT)</td>
+                    {% for v in data.per_month_commercial_ex %}
+                    <td class="num">{{ v | zar }}</td>
+                    {% endfor %}
+                    <td class="num num-strong">{{ data.per_month_commercial_ex | sum | zar }}</td>
+                </tr>
+                <tr>
+                    <td>Residential (Ex VAT equiv)</td>
+                    {% for v in data.per_month_residential_ex %}
+                    <td class="num">{{ v | zar }}</td>
+                    {% endfor %}
+                    <td class="num num-strong">{{ data.per_month_residential_ex | sum | zar }}</td>
+                </tr>
+                <tr class="row-total">
+                    <td><strong>Total Ex VAT equiv</strong></td>
+                    {% for v in data.per_month_total_ex %}
+                    <td class="num num-strong">{{ v | zar }}</td>
+                    {% endfor %}
+                    <td class="num num-strong">{{ data.per_month_total_ex | sum | zar }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-header">
+        <h3>Per Contract Forward Rent</h3>
+        <span class="muted">Native values (Commercial Ex VAT, Residential Inc VAT)</span>
+    </div>
+    <div class="panel-body">
+        <table class="table table-compact">
+            <thead>
+                <tr>
+                    <th>Client</th>
+                    <th>Source</th>
+                    {% for m in data.months %}
+                    <th class="num">{{ m | month_label }}</th>
+                    {% endfor %}
+                    <th class="num">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in data.rows %}
+                <tr>
+                    <td><a href="/contracts/{{ r.id }}">{{ r.client_name }}</a></td>
+                    <td><span class="chip chip-{{ r.sheet_source }}">{{ r.sheet_source[0] | upper }}</span></td>
+                    {% for v in r.monthly_values %}
+                    <td class="num">{{ v | zar }}</td>
+                    {% endfor %}
+                    <td class="num num-strong">{{ r.total | zar }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}
+<html xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882"><head>
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:MediaServiceImageTags msdt:dt="string"></mso:MediaServiceImageTags>
+<mso:lcf76f155ced4ddcb4097134ff3c332f msdt:dt="string"></mso:lcf76f155ced4ddcb4097134ff3c332f>
+<mso:TaxCatchAll msdt:dt="string"></mso:TaxCatchAll>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>

@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% set active = 'contracts' %}
+{% block title %}{% if mode == 'new' %}New Contract{% else %}{{ contract.client_name }}{% endif %} &mdash; Forest Energy O&M{% endblock %}
+
+{% block content %}
+
+<section class="section-header">
+    <div>
+        <h2>{% if mode == 'new' %}New Contract{% else %}{{ contract.client_name }}{% endif %}</h2>
+        {% if mode == 'edit' %}
+        <p class="muted">Status: <span class="status status-{{ contract.status }}">{{ contract.status | replace('_', ' ') | capitalize }}</span></p>
+        {% endif %}
+    </div>
+    <div>
+        <a href="/contracts" class="btn">&larr; Back to contracts</a>
+    </div>
+</section>
+
+{% if mode == 'edit' and contract.computed %}
+<section class="panel">
+    <div class="panel-header"><h3>Computed</h3></div>
+    <div class="panel-body">
+        <div class="computed-grid">
+            <div>
+                <div class="kpi-label">CURRENT MONTHLY RENT</div>
+                <div class="kpi-value-sm">{{ contract.computed.current_monthly_rent | zar }}</div>
+            </div>
+            <div>
+                <div class="kpi-label">NEXT MONTHLY RENT</div>
+                <div class="kpi-value-sm">{{ contract.computed.next_monthly_rent | zar }}</div>
+            </div>
+            <div>
+                <div class="kpi-label">NEXT ESCALATION</div>
+                <div class="kpi-value-sm">{{ contract.computed.next_escalation_date | fmt_date }}</div>
+            </div>
+            <div>
+                <div class="kpi-label">END DATE</div>
+                <div class="kpi-value-sm">{% if contract.computed.auto_renew %}Auto-renew{% else %}{{ contract.computed.end_date | fmt_date }}{% endif %}</div>
+            </div>
+            <div>
+                <div class="kpi-label">YEARS ELAPSED</div>
+                <div class="kpi-value-sm">{{ contract.computed.years_elapsed }}</div>
+            </div>
+            <div>
+                <div class="kpi-label">{% if contract.computed.auto_renew %}NEXT RENEWAL DECISION{% else %}MONTHS TO END{% endif %}</div>
+                <div class="kpi-value-sm">{% if contract.computed.auto_renew %}{{ contract.computed.renewal_decision_date | fmt_date }}{% elif contract.computed.months_to_end is not none %}{{ contract.computed.months_to_end }}{% else %}-{% endif %}</div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<section class="panel">
+    <div class="panel-header"><h3>Contract Details</h3></div>
+    <div class="panel-body">
+        <form method="post" action="{% if mode == 'new' %}/contracts/new{% else %}/contracts/{{ contract.id }}{% endif %}" class="form">
+            <div class="form-grid">
+                <label>
+                    <span>Source *</span>
+                    <select name="sheet_source" required>
+                        <option value="commercial" {% if contract and contract.sheet_source == 'commercial' %}selected{% endif %}>Commercial</option>
+                        <option value="residential" {% if contract and contract.sheet_source == 'residential' %}selected{% endif %}>Residential PPA</option>
+                    </select>
+                </label>
+                <label>
+                    <span>VAT treatment *</span>
+                    <select name="vat_treatment" required>
+                        <option value="ex_vat" {% if contract and contract.vat_treatment == 'ex_vat' %}selected{% endif %}>Ex VAT (Commercial)</option>
+                        <option value="inc_vat" {% if contract and contract.vat_treatment == 'inc_vat' %}selected{% endif %}>Inc VAT (Residential)</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Client Name *</span>
+                    <input type="text" name="client_name" required value="{{ contract.client_name if contract else '' }}">
+                </label>
+                <label>
+                    <span>Project Number</span>
+                    <input type="text" name="project_number" value="{{ contract.project_number if contract else '' }}">
+                </label>
+                <label>
+                    <span>Contact Person</span>
+                    <input type="text" name="contact_person" value="{{ contract.contact_person if contract else '' }}">
+                </label>
+                <label>
+                    <span>Client Email</span>
+                    <input type="email" name="client_email" value="{{ contract.client_email if contract else '' }}" placeholder="For escalation notifications">
+                </label>
+                <label>
+                    <span>Invoice Type</span>
+                    <select name="invoice_type">
+                        <option value="">(none)</option>
+                        {% for t in ['Manually','Automatic','No Invoice'] %}
+                        <option value="{{ t }}" {% if contract and contract.invoice_type == t %}selected{% endif %}>{{ t }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label>
+                    <span>Start Date</span>
+                    <input type="date" name="start_date" value="{{ contract.start_date if contract and contract.start_date else '' }}">
+                </label>
+                <label>
+                    <span>Contract Term (years)</span>
+                    <input type="number" step="any" name="contract_term_years" value="{{ '%g' | format(contract.contract_term_years) if contract and contract.contract_term_years else '' }}">
+                </label>
+                <label>
+                    <span>Base Monthly Rent</span>
+                    <input type="number" step="0.01" name="base_monthly_rent" value="{{ contract.base_monthly_rent if contract and contract.base_monthly_rent is not none else '' }}">
+                </label>
+                <label>
+                    <span>Annual Escalation (%)</span>
+                    <input type="number" step="0.001" name="escalation_pct" value="{{ '%g' | format(contract.escalation_pct * 100) if contract and contract.escalation_pct is not none else '' }}" placeholder="e.g. 6.5">
+                </label>
+                <label>
+                    <span>Auto-renew</span>
+                    <select name="auto_renew">
+                        <option value="1" {% if contract is none or contract.auto_renew %}selected{% endif %}>Yes (no hard end date)</option>
+                        <option value="0" {% if contract and not contract.auto_renew %}selected{% endif %}>No (ends after term)</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Notice Period (days)</span>
+                    <input type="number" name="notice_period_days" min="0" step="1" value="{{ contract.notice_period_days if contract and contract.notice_period_days is not none else 60 }}" placeholder="60">
+                </label>
+                <label>
+                    <span>Status *</span>
+                    <select name="status" required>
+                        {% for s in ['active','incomplete','internal_no_invoice','ended'] %}
+                        <option value="{{ s }}" {% if contract and contract.status == s %}selected{% endif %}>{{ s | replace('_', ' ') | capitalize }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label class="form-wide">
+                    <span>Notes</span>
+                    <textarea name="notes" rows="3">{{ contract.notes if contract and contract.notes else '' }}</textarea>
+                </label>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">{% if mode == 'new' %}Create contract{% else %}Save changes{% endif %}</button>
+                {% if mode == 'edit' %}
+                <button type="submit" form="delete-form" class="btn btn-danger">Delete contract</button>
+                {% endif %}
+            </div>
+        </form>
+
+        {% if mode == 'edit' %}
+        <form id="delete-form" method="post" action="/contracts/{{ contract.id }}/delete" onsubmit="return confirm('Delete this contract? This cannot be undone.');"></form>
+        {% endif %}
+    </div>
+</section>
+
+{% if mode == 'edit' %}
+<section class="panel">
+    <div class="panel-header">
+        <h3>Rent Overrides</h3>
+        <span class="muted">Use only when an actual escalation differs from the contracted percentage. Subsequent escalations compound from the override.</span>
+    </div>
+    <div class="panel-body">
+        {% if overrides %}
+        <table class="table table-compact">
+            <thead>
+                <tr>
+                    <th>Effective Date</th>
+                    <th class="num">Override Rent</th>
+                    <th>Reason</th>
+                    <th>Captured</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in overrides %}
+                <tr>
+                    <td>{{ o.effective_date | fmt_date }}</td>
+                    <td class="num">{{ o.override_rent | zar }}</td>
+                    <td>{{ o.reason or '-' }}</td>
+                    <td>{{ o.created_at }}</td>
+                    <td>
+                        <form method="post" action="/contracts/{{ contract.id }}/overrides/{{ o.id }}/delete" class="inline-form" onsubmit="return confirm('Remove this override?');">
+                            <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="empty">No overrides captured. The dashboard uses the contracted escalation percentage.</p>
+        {% endif %}
+
+        <form method="post" action="/contracts/{{ contract.id }}/overrides" class="form" style="margin-top:16px">
+            <div class="form-grid">
+                <label>
+                    <span>Effective Date *</span>
+                    <input type="date" name="effective_date" required>
+                </label>
+                <label>
+                    <span>Actual Rent *</span>
+                    <input type="number" step="0.01" name="override_rent" required placeholder="e.g. 12000.00">
+                </label>
+                <label>
+                    <span>Reason</span>
+                    <input type="text" name="reason" placeholder="Negotiated lower rate, CPI delta, rent holiday">
+                </label>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Add override</button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endif %}
+
+{% endblock %}
+<html xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882"><head>
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:MediaServiceImageTags msdt:dt="string"></mso:MediaServiceImageTags>
+<mso:lcf76f155ced4ddcb4097134ff3c332f msdt:dt="string"></mso:lcf76f155ced4ddcb4097134ff3c332f>
+<mso:TaxCatchAll msdt:dt="string"></mso:TaxCatchAll>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>

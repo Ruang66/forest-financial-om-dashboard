@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.db
+*.db-journal
+.env
+om_dashboard_preview/
+om_dashboard_previews/

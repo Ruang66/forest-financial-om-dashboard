@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Forest Energy O&M{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/styles.css">
+
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:MediaServiceImageTags msdt:dt="string"></mso:MediaServiceImageTags>
+<mso:lcf76f155ced4ddcb4097134ff3c332f msdt:dt="string"></mso:lcf76f155ced4ddcb4097134ff3c332f>
+<mso:TaxCatchAll msdt:dt="string"></mso:TaxCatchAll>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>
+<body>
+
+<header class="app-header">
+    <div class="header-inner">
+        <div class="brand">
+            <span class="brand-name">Forest Energy</span>
+            <span class="brand-sub">O&amp;M Dashboard</span>
+        </div>
+        <nav class="nav">
+            <a href="/" class="nav-link {% if active == 'dashboard' %}active{% endif %}">Dashboard</a>
+            <a href="/forecast" class="nav-link {% if active == 'forecast' %}active{% endif %}">Forecast</a>
+            <a href="/commercial" class="nav-link {% if active == 'commercial' %}active{% endif %}">Commercial</a>
+            <a href="/residential" class="nav-link {% if active == 'residential' %}active{% endif %}">Residential</a>
+            <a href="/contracts" class="nav-link {% if active == 'contracts' %}active{% endif %}">Contracts</a>
+            <a href="/contracts/new" class="nav-link nav-cta">+ New Contract</a>
+        </nav>
+    </div>
+</header>
+
+<main class="container">
+{% block content %}{% endblock %}
+</main>
+
+</body>
+</html>

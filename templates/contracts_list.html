@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% set active = 'contracts' %}
+{% block title %}Contracts &mdash; Forest Energy O&M{% endblock %}
+
+{% block content %}
+
+<section class="section-header">
+    <div>
+        <h2>Contracts</h2>
+        <p class="muted">{{ contracts | length }} record(s)</p>
+    </div>
+    <div>
+        <a href="/contracts/new" class="btn btn-primary">+ New Contract</a>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-body filter-bar">
+        <span class="muted">Filter:</span>
+        <a href="/contracts" class="chip {% if not filter_status and not filter_source %}chip-active{% endif %}">All</a>
+        <a href="/contracts?source=commercial" class="chip {% if filter_source == 'commercial' %}chip-active{% endif %}">Commercial</a>
+        <a href="/contracts?source=residential" class="chip {% if filter_source == 'residential' %}chip-active{% endif %}">Residential</a>
+        <a href="/contracts?status=active" class="chip {% if filter_status == 'active' %}chip-active{% endif %}">Active</a>
+        <a href="/contracts?status=incomplete" class="chip {% if filter_status == 'incomplete' %}chip-active{% endif %}">Incomplete</a>
+        <a href="/contracts?status=internal_no_invoice" class="chip {% if filter_status == 'internal_no_invoice' %}chip-active{% endif %}">Internal</a>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Client</th>
+                    <th>Project</th>
+                    <th>Source</th>
+                    <th>Invoice Type</th>
+                    <th>Start</th>
+                    <th>Term</th>
+                    <th class="num">Base Rent</th>
+                    <th class="num">Escalation</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in contracts %}
+                <tr>
+                    <td><a href="/contracts/{{ c.id }}">{{ c.client_name }}</a></td>
+                    <td>{{ c.project_number or '-' }}</td>
+                    <td><span class="chip chip-{{ c.sheet_source }}">{{ c.sheet_source | capitalize }}</span></td>
+                    <td>{{ c.invoice_type or '-' }}</td>
+                    <td>{{ c.start_date | fmt_date }}</td>
+                    <td>{% if c.contract_term_years %}{{ '%g' | format(c.contract_term_years) }} yr{% else %}-{% endif %}</td>
+                    <td class="num">{{ c.base_monthly_rent | zar }}</td>
+                    <td class="num">{{ c.escalation_pct | pct }}</td>
+                    <td><span class="status status-{{ c.status }}">{{ c.status | replace('_', ' ') | capitalize }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}
+<html xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882"><head>
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:MediaServiceImageTags msdt:dt="string"></mso:MediaServiceImageTags>
+<mso:lcf76f155ced4ddcb4097134ff3c332f msdt:dt="string"></mso:lcf76f155ced4ddcb4097134ff3c332f>
+<mso:TaxCatchAll msdt:dt="string"></mso:TaxCatchAll>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>
