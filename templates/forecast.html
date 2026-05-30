@@ -63,6 +63,7 @@
         <table class="table table-compact">
             <thead>
                 <tr>
+                    <th>Project</th>
                     <th>Client</th>
                     <th>Source</th>
                     {% for m in data.months %}
@@ -74,6 +75,7 @@
             <tbody>
                 {% for r in data.rows %}
                 <tr>
+                    <td>{{ r.project_number or '-' }}</td>
                     <td><a href="/contracts/{{ r.id }}">{{ r.client_name }}</a></td>
                     <td><span class="chip chip-{{ r.sheet_source }}">{{ r.sheet_source[0] | upper }}</span></td>
                     {% for v in r.monthly_values %}
