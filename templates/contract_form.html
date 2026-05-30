@@ -177,14 +177,35 @@
             </thead>
             <tbody>
                 {% for o in overrides %}
-                <tr>
+                <tr id="override-row-{{ o.id }}">
                     <td>{{ o.effective_date | fmt_date }}</td>
                     <td class="num">{{ o.override_rent | zar }}</td>
                     <td>{{ o.reason or '-' }}</td>
                     <td>{{ o.created_at }}</td>
-                    <td>
+                    <td style="white-space:nowrap">
+                        <button type="button" class="btn btn-sm" onclick="toggleEditOverride({{ o.id }}, '{{ o.effective_date }}', {{ o.override_rent }}, '{{ o.reason or '' }}')">Edit</button>
                         <form method="post" action="/contracts/{{ contract.id }}/overrides/{{ o.id }}/delete" class="inline-form" onsubmit="return confirm('Remove this override?');">
                             <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr id="override-edit-{{ o.id }}" style="display:none; background:#F0F6F7;">
+                    <td colspan="5">
+                        <form method="post" action="/contracts/{{ contract.id }}/overrides/{{ o.id }}/edit" style="display:flex; gap:12px; align-items:flex-end; padding:8px 0;">
+                            <label style="display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:700;color:#667078;text-transform:uppercase;">
+                                Effective Date
+                                <input type="date" name="effective_date" id="edit-date-{{ o.id }}" style="padding:7px 10px;border:1px solid #E2E6EA;border-radius:6px;font-size:13px;">
+                            </label>
+                            <label style="display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:700;color:#667078;text-transform:uppercase;">
+                                Actual Rent
+                                <input type="number" step="0.01" name="override_rent" id="edit-rent-{{ o.id }}" style="padding:7px 10px;border:1px solid #E2E6EA;border-radius:6px;font-size:13px;width:140px;">
+                            </label>
+                            <label style="display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:700;color:#667078;text-transform:uppercase;flex:1;">
+                                Reason
+                                <input type="text" name="reason" id="edit-reason-{{ o.id }}" style="padding:7px 10px;border:1px solid #E2E6EA;border-radius:6px;font-size:13px;">
+                            </label>
+                            <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                            <button type="button" class="btn btn-sm" onclick="document.getElementById('override-edit-{{ o.id }}').style.display='none'">Cancel</button>
                         </form>
                     </td>
                 </tr>
@@ -194,6 +215,16 @@
         {% else %}
         <p class="empty">No overrides captured. The dashboard uses the contracted escalation percentage.</p>
         {% endif %}
+
+        <script>
+        function toggleEditOverride(id, date, rent, reason) {
+            var row = document.getElementById('override-edit-' + id);
+            document.getElementById('edit-date-' + id).value = date;
+            document.getElementById('edit-rent-' + id).value = rent;
+            document.getElementById('edit-reason-' + id).value = reason;
+            row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+        }
+        </script>
 
         <form method="post" action="/contracts/{{ contract.id }}/overrides" class="form" style="margin-top:16px">
             <div class="form-grid">

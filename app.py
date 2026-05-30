@@ -336,6 +336,18 @@ def add_override(
     return RedirectResponse(f"/contracts/{contract_id}", status_code=303)
 
 
+@app.post("/contracts/{contract_id}/overrides/{override_id}/edit")
+def edit_override(
+    contract_id: int,
+    override_id: int,
+    effective_date: str = Form(...),
+    override_rent: float = Form(...),
+    reason: str | None = Form(None),
+):
+    db.insert_rent_override(contract_id, effective_date, override_rent, reason or None)
+    return RedirectResponse(f"/contracts/{contract_id}", status_code=303)
+
+
 @app.post("/contracts/{contract_id}/overrides/{override_id}/delete")
 def delete_override(contract_id: int, override_id: int):
     db.delete_rent_override(override_id)
