@@ -31,8 +31,8 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>Client</th>
                     <th>Project</th>
+                    <th>Client</th>
                     <th>Source</th>
                     <th>Invoice Type</th>
                     <th>Start</th>
@@ -45,8 +45,8 @@
             <tbody>
                 {% for c in contracts %}
                 <tr>
-                    <td><a href="/contracts/{{ c.id }}">{{ c.client_name }}</a></td>
                     <td>{{ c.project_number or '-' }}</td>
+                    <td><a href="/contracts/{{ c.id }}">{{ c.client_name }}</a></td>
                     <td><span class="chip chip-{{ c.sheet_source }}">{{ c.sheet_source | capitalize }}</span></td>
                     <td>{{ c.invoice_type or '-' }}</td>
                     <td>{{ c.start_date | fmt_date }}</td>
