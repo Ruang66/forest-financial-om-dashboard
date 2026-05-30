@@ -217,7 +217,7 @@ def contracts_new(request: Request):
 
 def _parse_contract_form(
     sheet_source, project_number, client_name, contact_person, client_email,
-    invoice_type, start_date, contract_term_years, base_monthly_rent,
+    invoice_type, invoice_frequency, start_date, contract_term_years, base_monthly_rent,
     escalation_pct, vat_treatment, auto_renew, notice_period_days, status, notes,
 ) -> dict:
     return {
@@ -227,6 +227,7 @@ def _parse_contract_form(
         "contact_person": contact_person or None,
         "client_email": client_email or None,
         "invoice_type": invoice_type or None,
+        "invoice_frequency": invoice_frequency or "monthly",
         "start_date": start_date or None,
         "contract_term_years": float(contract_term_years) if contract_term_years else None,
         "base_monthly_rent": float(base_monthly_rent) if base_monthly_rent else None,
@@ -247,6 +248,7 @@ def contracts_new_post(
     contact_person: str | None = Form(None),
     client_email: str | None = Form(None),
     invoice_type: str | None = Form(None),
+    invoice_frequency: str = Form("monthly"),
     start_date: str | None = Form(None),
     contract_term_years: str | None = Form(None),
     base_monthly_rent: str | None = Form(None),
@@ -259,7 +261,7 @@ def contracts_new_post(
 ):
     data = _parse_contract_form(
         sheet_source, project_number, client_name, contact_person, client_email,
-        invoice_type, start_date, contract_term_years, base_monthly_rent,
+        invoice_type, invoice_frequency, start_date, contract_term_years, base_monthly_rent,
         escalation_pct, vat_treatment, auto_renew, notice_period_days, status, notes,
     )
     new_id = db.insert_contract(data)
@@ -295,6 +297,7 @@ def contract_update(
     contact_person: str | None = Form(None),
     client_email: str | None = Form(None),
     invoice_type: str | None = Form(None),
+    invoice_frequency: str = Form("monthly"),
     start_date: str | None = Form(None),
     contract_term_years: str | None = Form(None),
     base_monthly_rent: str | None = Form(None),
@@ -307,7 +310,7 @@ def contract_update(
 ):
     data = _parse_contract_form(
         sheet_source, project_number, client_name, contact_person, client_email,
-        invoice_type, start_date, contract_term_years, base_monthly_rent,
+        invoice_type, invoice_frequency, start_date, contract_term_years, base_monthly_rent,
         escalation_pct, vat_treatment, auto_renew, notice_period_days, status, notes,
     )
     db.update_contract(contract_id, data)

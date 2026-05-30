@@ -95,6 +95,14 @@
                     </select>
                 </label>
                 <label>
+                    <span>Invoice Frequency</span>
+                    <select name="invoice_frequency">
+                        <option value="monthly" {% if not contract or contract.invoice_frequency == 'monthly' %}selected{% endif %}>Monthly</option>
+                        <option value="quarterly" {% if contract and contract.invoice_frequency == 'quarterly' %}selected{% endif %}>Quarterly</option>
+                        <option value="annually" {% if contract and contract.invoice_frequency == 'annually' %}selected{% endif %}>Annually</option>
+                    </select>
+                </label>
+                <label>
                     <span>Start Date</span>
                     <input type="date" name="start_date" value="{{ contract.start_date if contract and contract.start_date else '' }}">
                 </label>

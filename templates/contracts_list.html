@@ -35,6 +35,7 @@
                     <th>Client</th>
                     <th>Source</th>
                     <th>Invoice Type</th>
+                    <th>Frequency</th>
                     <th>Start</th>
                     <th>Term</th>
                     <th class="num">Base Rent</th>
@@ -49,6 +50,7 @@
                     <td><a href="/contracts/{{ c.id }}">{{ c.client_name }}</a></td>
                     <td><span class="chip chip-{{ c.sheet_source }}">{{ c.sheet_source | capitalize }}</span></td>
                     <td>{{ c.invoice_type or '-' }}</td>
+                    <td>{{ c.invoice_frequency | capitalize }}</td>
                     <td>{{ c.start_date | fmt_date }}</td>
                     <td>{% if c.contract_term_years %}{{ '%g' | format(c.contract_term_years) }} yr{% else %}-{% endif %}</td>
                     <td class="num">{{ c.base_monthly_rent | zar }}</td>

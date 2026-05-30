@@ -29,6 +29,8 @@ _SCHEMA = [
         contact_person       TEXT,
         client_email         TEXT,
         invoice_type         TEXT,
+        invoice_frequency    TEXT    NOT NULL DEFAULT 'monthly'
+                                     CHECK (invoice_frequency IN ('monthly','quarterly','annually')),
         start_date           TEXT,
         contract_term_years  REAL,
         base_monthly_rent    REAL,
@@ -99,6 +101,8 @@ def _migrate_legacy(cur) -> None:
         cur.execute("ALTER TABLE contracts ADD COLUMN auto_renew INTEGER NOT NULL DEFAULT 1")
     if "notice_period_days" not in cols:
         cur.execute("ALTER TABLE contracts ADD COLUMN notice_period_days INTEGER NOT NULL DEFAULT 60")
+    if "invoice_frequency" not in cols:
+        cur.execute("ALTER TABLE contracts ADD COLUMN invoice_frequency TEXT NOT NULL DEFAULT 'monthly'")
 
 
 def fetchall(sql: str, params: Iterable[Any] = ()) -> list:
@@ -124,8 +128,8 @@ def execute(sql: str, params: Iterable[Any] = ()) -> int:
 
 CONTRACT_COLS = [
     "sheet_source", "project_number", "client_name", "contact_person",
-    "client_email", "invoice_type", "start_date", "contract_term_years",
-    "base_monthly_rent", "escalation_pct", "vat_treatment",
+    "client_email", "invoice_type", "invoice_frequency", "start_date",
+    "contract_term_years", "base_monthly_rent", "escalation_pct", "vat_treatment",
     "auto_renew", "notice_period_days",
     "status", "notes",
 ]
