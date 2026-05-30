@@ -3,7 +3,7 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 
 from config import VAT_RATE, FY_START_MONTH
-from contract_math import compute_contract, rent_at_month, forward_12_months
+from contract_math import compute_contract, rent_at_month, invoice_amount_at_month, forward_12_months
 from db import (
     fetchall, resolved_flag_keys_for_month, resolved_flags_for_month,
     all_rent_overrides,
@@ -219,8 +219,10 @@ def build_forecast(today: date | None = None) -> dict:
     for m in months:
         c_total = r_total = 0.0
         for c in active:
-            rent = _monthly_billable(c, m, overrides_map.get(c["id"], []))
-            ex = _convert_to_ex_vat(rent, c["vat_treatment"])
+            if c["status"] in ("incomplete", "internal_no_invoice"):
+                continue
+            inv = invoice_amount_at_month(c, m, overrides_map.get(c["id"], []))
+            ex = _convert_to_ex_vat(inv, c["vat_treatment"])
             if c["sheet_source"] == "commercial":
                 c_total += ex
             else:
@@ -231,7 +233,8 @@ def build_forecast(today: date | None = None) -> dict:
 
     forward_rows = []
     for c in active:
-        vals = [_monthly_billable(c, m, overrides_map.get(c["id"], [])) for m in months]
+        overrides = overrides_map.get(c["id"], [])
+        vals = [invoice_amount_at_month(c, m, overrides) for m in months]
         if any(v > 0 for v in vals):
             forward_rows.append({
                 "id": c["id"],
@@ -239,6 +242,7 @@ def build_forecast(today: date | None = None) -> dict:
                 "project_number": c["project_number"],
                 "sheet_source": c["sheet_source"],
                 "vat_treatment": c["vat_treatment"],
+                "invoice_frequency": c.get("invoice_frequency", "monthly"),
                 "monthly_values": vals,
                 "total": sum(vals),
             })

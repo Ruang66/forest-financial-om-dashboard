@@ -56,8 +56,8 @@
 
 <section class="panel">
     <div class="panel-header">
-        <h3>Per Contract Forward Rent</h3>
-        <span class="muted">Native values (Commercial Ex VAT, Residential Inc VAT)</span>
+        <h3>Per Contract Forward Invoicing</h3>
+        <span class="muted">Native values (Commercial Ex VAT, Residential Inc VAT). Quarterly and annual contracts show invoice amount in invoice month only.</span>
     </div>
     <div class="panel-body">
         <table class="table table-compact">
@@ -66,6 +66,7 @@
                     <th>Project</th>
                     <th>Client</th>
                     <th>Source</th>
+                    <th>Freq</th>
                     {% for m in data.months %}
                     <th class="num">{{ m | month_label }}</th>
                     {% endfor %}
@@ -78,8 +79,9 @@
                     <td>{{ r.project_number or '-' }}</td>
                     <td><a href="/contracts/{{ r.id }}">{{ r.client_name }}</a></td>
                     <td><span class="chip chip-{{ r.sheet_source }}">{{ r.sheet_source[0] | upper }}</span></td>
+                    <td><span class="muted" style="font-size:11px;">{{ r.invoice_frequency | capitalize }}</span></td>
                     {% for v in r.monthly_values %}
-                    <td class="num">{{ v | zar }}</td>
+                    <td class="num">{% if v > 0 %}{{ v | zar }}{% else %}<span class="muted">-</span>{% endif %}</td>
                     {% endfor %}
                     <td class="num num-strong">{{ r.total | zar }}</td>
                 </tr>

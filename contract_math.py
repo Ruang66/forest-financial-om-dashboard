@@ -217,6 +217,49 @@ def rent_at_month(c: dict, target_month: date,
     return _rent_at_anniversary(base, esc, y, start, overrides)
 
 
+def invoice_amount_at_month(c: dict, target_month: date,
+                            overrides: Optional[list[dict]] = None) -> float:
+    """Returns the actual invoice amount for a given month based on invoice_frequency.
+
+    Monthly  : same as rent_at_month.
+    Quarterly: returns sum of 3 monthly rents if this is an invoice month, else 0.
+    Annually : returns sum of 12 monthly rents if this is an invoice month, else 0.
+
+    Invoice months are determined by counting months from the contract start date.
+    """
+    overrides = overrides or []
+    freq = c.get("invoice_frequency") or "monthly"
+    start = _parse_date(c.get("start_date"))
+
+    if freq == "monthly" or start is None:
+        return rent_at_month(c, target_month, overrides)
+
+    target = target_month.replace(day=1)
+    start_m = start.replace(day=1)
+
+    if target < start_m:
+        return 0.0
+
+    months_since_start = (target.year - start_m.year) * 12 + (target.month - start_m.month)
+
+    if freq == "quarterly":
+        period = 3
+    elif freq == "annually":
+        period = 12
+    else:
+        return rent_at_month(c, target_month, overrides)
+
+    if months_since_start % period != 0:
+        return 0.0
+
+    # Invoice month: sum the monthly rents for each month in this period
+    total = 0.0
+    for i in range(period):
+        m = target + relativedelta(months=i)
+        total += rent_at_month(c, m, overrides)
+    return total
+
+
 def forward_12_months(today: Optional[date] = None) -> list[date]:
     """List of 12 first-of-month dates starting with the current month."""
     today = today or date.today()
