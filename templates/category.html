@@ -169,6 +169,51 @@
     </div>
 </section>
 
+{% if data.invoice_flags or data.resolved_invoice_flags %}
+<section class="panel">
+    <div class="panel-header">
+        <h3>Invoices to Send This Month</h3>
+        <span class="muted">Manual invoices due based on invoice frequency.</span>
+    </div>
+    <div class="panel-body">
+    {% if data.invoice_flags %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Project</th>
+                    <th>Client</th>
+                    <th>Frequency</th>
+                    <th class="num">Amount Due</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in data.invoice_flags %}
+                <tr>
+                    <td>{{ f.project_number or '-' }}</td>
+                    <td><a href="/contracts/{{ f.id }}">{{ f.client_name }}</a></td>
+                    <td>{{ f.invoice_frequency | capitalize }}</td>
+                    <td class="num">{{ f.invoice_amount_due | zar }}</td>
+                    <td>
+                        <form method="post" action="/flags/resolve" class="inline-form">
+                            <input type="hidden" name="contract_id" value="{{ f.id }}">
+                            <input type="hidden" name="flag_type" value="invoice_due">
+                            <input type="hidden" name="flag_month" value="{{ f.flag_month }}">
+                            <input type="hidden" name="redirect" value="/{{ data.source }}">
+                            <button type="submit" class="btn btn-sm btn-primary">Mark sent</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="empty">All manual invoices for this month have been marked as sent.</p>
+    {% endif %}
+    </div>
+</section>
+{% endif %}
+
 {% if data.incomplete %}
 <section class="panel panel-warning">
     <div class="panel-header">

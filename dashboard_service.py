@@ -26,6 +26,43 @@ def _monthly_billable(contract: dict, for_month: date,
     return rent_at_month(contract, for_month, overrides or [])
 
 
+def _invoice_due_this_month(c: dict, today: date, overrides: list[dict]) -> bool:
+    """True if this contract has a manual invoice due in today's month."""
+    if c.get("invoice_type") != "Manually":
+        return False
+    if c["status"] not in ("active",):
+        return False
+    amount = invoice_amount_at_month(c, today.replace(day=1), overrides)
+    return amount > 0
+
+
+def _build_invoice_flags(enriched: list[dict], today: date, overrides_map: dict) -> tuple[list[dict], list[dict]]:
+    """Returns (open_invoice_flags, resolved_invoice_flags) for this month."""
+    current_month = today.strftime("%Y-%m")
+    resolved_set = {cid for cid, ftype in resolved_flag_keys_for_month(current_month)
+                    if ftype == "invoice_due"}
+
+    open_flags = []
+    for c in enriched:
+        if not _invoice_due_this_month(c, today, overrides_map.get(c["id"], [])):
+            continue
+        if c["id"] in resolved_set:
+            continue
+        amount = invoice_amount_at_month(c, today.replace(day=1), overrides_map.get(c["id"], []))
+        open_flags.append({
+            **c,
+            "flag_type": "invoice_due",
+            "flag_month": current_month,
+            "invoice_amount_due": amount,
+        })
+
+    open_flags.sort(key=lambda x: (x["sheet_source"], x["client_name"]))
+
+    resolved_rows = [r for r in resolved_flags_for_month(current_month)
+                     if r["flag_type"] == "invoice_due"]
+    return open_flags, resolved_rows
+
+
 def _convert_to_ex_vat(amount: float, vat_treatment: str) -> float:
     if vat_treatment == "inc_vat":
         return round(amount / (1 + VAT_RATE), 2)
@@ -167,6 +204,7 @@ def build_home(today: date | None = None) -> dict:
     total_annual_ex = total_monthly_ex * 12
 
     open_flags, resolved_rows = _build_flags(contracts, today)
+    invoice_flags, resolved_invoice_rows = _build_invoice_flags(contracts, today, overrides_map)
 
     fy_start, fy_end = _fy_bounds(today)
     fy_months = []
@@ -200,6 +238,8 @@ def build_home(today: date | None = None) -> dict:
         },
         "flags": open_flags,
         "resolved_flags": resolved_rows,
+        "invoice_flags": invoice_flags,
+        "resolved_invoice_flags": resolved_invoice_rows,
         "incomplete": incomplete,
         "internal": internal,
     }
@@ -275,9 +315,9 @@ def build_category(source: str, today: date | None = None) -> dict:
     annual_ex = monthly_ex * 12
 
     # Flags: only for this category
-    open_flags, resolved_rows = _build_flags(
-        [c for c in contracts if c["sheet_source"] == source], today
-    )
+    cat_contracts = [c for c in contracts if c["sheet_source"] == source]
+    open_flags, resolved_rows = _build_flags(cat_contracts, today)
+    invoice_flags, resolved_invoice_rows = _build_invoice_flags(cat_contracts, today, overrides_map)
 
     # Incomplete rows for this category
     incomplete = [c for c in category if c["status"] == "incomplete"]
@@ -302,4 +342,6 @@ def build_category(source: str, today: date | None = None) -> dict:
         "internal": internal,
         "flags": open_flags,
         "resolved_flags": resolved_rows,
+        "invoice_flags": invoice_flags,
+        "resolved_invoice_flags": resolved_invoice_rows,
     }

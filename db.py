@@ -50,7 +50,7 @@ _SCHEMA = [
     """CREATE TABLE IF NOT EXISTS flag_actions (
         id            SERIAL PRIMARY KEY,
         contract_id   INTEGER NOT NULL REFERENCES contracts(id) ON DELETE CASCADE,
-        flag_type     TEXT    NOT NULL CHECK (flag_type IN ('escalation','end','escalation_and_end','renewal_decision')),
+        flag_type     TEXT    NOT NULL CHECK (flag_type IN ('escalation','end','escalation_and_end','renewal_decision','invoice_due')),
         flag_month    TEXT    NOT NULL,
         resolved_at   TEXT    NOT NULL DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),
         resolved_by   TEXT,
@@ -103,6 +103,16 @@ def _migrate_legacy(cur) -> None:
         cur.execute("ALTER TABLE contracts ADD COLUMN notice_period_days INTEGER NOT NULL DEFAULT 60")
     if "invoice_frequency" not in cols:
         cur.execute("ALTER TABLE contracts ADD COLUMN invoice_frequency TEXT NOT NULL DEFAULT 'monthly'")
+    # Widen the flag_type CHECK constraint to include invoice_due
+    cur.execute("""
+        ALTER TABLE flag_actions
+        DROP CONSTRAINT IF EXISTS flag_actions_flag_type_check
+    """)
+    cur.execute("""
+        ALTER TABLE flag_actions
+        ADD CONSTRAINT flag_actions_flag_type_check
+        CHECK (flag_type IN ('escalation','end','escalation_and_end','renewal_decision','invoice_due'))
+    """)
 
 
 def fetchall(sql: str, params: Iterable[Any] = ()) -> list:
